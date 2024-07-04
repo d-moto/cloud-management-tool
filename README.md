@@ -208,3 +208,134 @@ For Windows, use the following command in the Command Prompt:
 ```cmd
 net start postgresql-x64-13
 ```
+
+
+## Django Installation and Setup
+### Install Django
+
+1. Navigate to the `backend` directory:
+```
+cd backend
+```
+
+2. Create and activate a virtual environment:
+```
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+```
+
+3. Install Django and other dependencies:
+```
+pip install Django djangorestframework psycopg2-binary boto3 azure-mgmt-resource
+```
+
+4. Create a Django project:
+```
+django-admin startproject cloud_management_backend
+cd cloud_management_backend
+```
+
+5. Create a Django app:
+```
+python manage.py startapp resource_management
+```
+
+6. Update the settings file:
+- Add resource_management and rest_framework to INSTALLED_APPS
+- Configure the database settings for PostgreSQL
+```
+# settings.py
+INSTALLED_APPS = [
+    ...
+    'resource_management',
+    'rest_framework',
+]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_db_name',
+        'USER': 'your_db_user',
+        'PASSWORD': 'your_db_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+7. Create models and run migrations:
+```
+# resource_management/models.py
+from django.db import models
+
+class VirtualMachine(models.Model):
+    name = models.CharField(max_length=100)
+    provider = models.CharField(max_length=50)  # 'AWS' or 'Azure'
+    status = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+```
+```
+python manage.py makemigrations
+python manage.py migrate
+```
+
+8. Create serializers and views:
+```
+# resource_management/serializers.py
+from rest_framework import serializers
+from .models import VirtualMachine
+
+class VirtualMachineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VirtualMachine
+        fields = '__all__'
+```
+```
+# resource_management/views.py
+from rest_framework import viewsets
+from .models import VirtualMachine
+from .serializers import VirtualMachineSerializer
+
+class VirtualMachineViewSet(viewsets.ModelViewSet):
+    queryset = VirtualMachine.objects.all()
+    serializer_class = VirtualMachineSerializer
+```
+
+9. Update the URL configuration:
+```
+# cloud_management_backend/urls.py
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from resource_management.views import VirtualMachineViewSet
+
+router = DefaultRouter()
+router.register(r'vms', VirtualMachineViewSet)
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+]
+```
+
+10. Start the Django development server:
+```
+python manage.py runserver
+```
+
+### Create a Superuser
+
+To access the Django admin interface, create a superuser account.
+
+```
+cd backend
+python manage.py createsuperuser
+Username (leave blank to use 'mokos'): admin
+Email address: mokosan123@outlook.jp
+Password: admin00
+Password (again): admin00
+The password is too similar to the username.
+This password is too short. It must contain at least 8 characters.
+Bypass password validation and create user anyway? [y/N]: y
+Superuser created successfully.
+```
