@@ -1,5 +1,7 @@
 import os
 import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLineEdit, QFormLayout, QListWidget
+import requests
 
 # PyQt5のパスを設定
 pyqt5_path = r'G:\マイドライブ\python\venv\cloud-tool-env39\Lib\site-packages\PyQt5'
@@ -11,14 +13,16 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = os.path.join(qt_plugin_path, 'platfo
 print("QT_PLUGIN_PATH:", os.environ['QT_PLUGIN_PATH'])
 print("QT_QPA_PLATFORM_PLUGIN_PATH:", os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'])
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLineEdit, QFormLayout
-import requests
-
 def fetch_vms():
-    response = requests.get('http://localhost:8000/api/vms/')
-    vms = response.json()
-    for vm in vms:
-        print(vm)
+    try:
+        response = requests.get('http://localhost:8000/api/vms/')
+        response.raise_for_status()
+        vms = response.json()
+        vm_list.clear()
+        for vm in vms:
+            vm_list.addItem(f"Name: {vm['name']}, Provider: {vm['provider']}, Status: {vm['status']}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching VMs: {e}")
 
 def create_vm():
     name = name_input.text()
@@ -29,9 +33,13 @@ def create_vm():
         "provider": provider,
         "status": status,
     }
-    response = requests.post('http://localhost:8000/api/vms/', json=data)
-    if response.status_code == 201:
-        print("Virtual Machine created successfully")
+    try:
+        response = requests.post('http://localhost:8000/api/vms/', json=data)
+        response.raise_for_status()
+        if response.status_code == 201:
+            print("Virtual Machine created successfully")
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating VM: {e}")
 
 app = QApplication(sys.argv)
 window = QWidget()
@@ -57,6 +65,10 @@ layout.addWidget(create_button)
 fetch_button = QPushButton("Fetch VMs")
 fetch_button.clicked.connect(fetch_vms)
 layout.addWidget(fetch_button)
+
+# 仮想マシンリスト表示の追加
+vm_list = QListWidget()
+layout.addWidget(vm_list)
 
 window.setLayout(layout)
 window.show()
