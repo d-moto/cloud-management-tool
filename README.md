@@ -142,3 +142,69 @@ sys.exit(app.exec_())
 ## License
 
 [Your License Here]
+
+## PostgreSQL Configuration
+
+### Install PostgreSQL
+
+If PostgreSQL is not already installed, you can download and install it from the [official PostgreSQL website](https://www.postgresql.org/download/).
+
+### Create a Database and User
+
+1. **Login to PostgreSQL**:
+   ```bash
+   psql -U postgres
+   ```
+
+2. **Create a new database**:
+   ```sql
+   CREATE DATABASE your_db_name;
+   ```
+
+3. **Create a new user**:
+   ```sql
+   CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+   ```
+
+4. **Grant all privileges to the new user**:
+   ```sql
+   GRANT ALL PRIVILEGES ON DATABASE your_db_name TO your_db_user;
+   ```
+
+5. **Set up the database schema**:
+   ```sql
+   \c your_db_name
+   GRANT ALL PRIVILEGES ON SCHEMA public TO your_db_user;
+   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO your_db_user;
+   GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO your_db_user;
+   ```
+
+### Configure Django to Use PostgreSQL
+
+1. **Update the `DATABASES` setting in `backend/cloud_management_backend/settings.py`**:
+   ```python
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.postgresql',
+           'NAME': 'your_db_name',
+           'USER': 'your_db_user',
+           'PASSWORD': 'your_db_password',
+           'HOST': 'localhost',
+           'PORT': '5432',
+       }
+   }
+   ```
+
+### Start PostgreSQL Service
+
+Ensure that the PostgreSQL service is running. You can start it using the following command:
+
+```bash
+sudo service postgresql start
+```
+
+For Windows, use the following command in the Command Prompt:
+
+```cmd
+net start postgresql-x64-13
+```
