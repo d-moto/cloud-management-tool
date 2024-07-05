@@ -20,9 +20,20 @@ def fetch_vms():
         vms = response.json()
         vm_list.clear()
         for vm in vms:
-            vm_list.addItem(f"Name: {vm['name']}, Provider: {vm['provider']}, Status: {vm['status']}")
+            vm_list.addItem(f"Name: {vm['name']}, Provider: {vm['provider']}, Status: {vm.get('status', 'N/A')}")
     except requests.exceptions.RequestException as e:
         print(f"Error fetching VMs: {e}")
+
+def fetch_azure_vms():
+    try:
+        response = requests.get('http://localhost:8000/api/azure_vms/')
+        response.raise_for_status()
+        vms = response.json()
+        vm_list.clear()
+        for vm in vms:
+            vm_list.addItem(f"Name: {vm['name']}, Provider: Azure, Status: {vm.get('status', 'N/A')}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching Azure VMs: {e}")
 
 def create_vm():
     name = name_input.text()
@@ -65,6 +76,10 @@ layout.addWidget(create_button)
 fetch_button = QPushButton("Fetch VMs")
 fetch_button.clicked.connect(fetch_vms)
 layout.addWidget(fetch_button)
+
+fetch_azure_button = QPushButton("Fetch Azure VMs")
+fetch_azure_button.clicked.connect(fetch_azure_vms)
+layout.addWidget(fetch_azure_button)
 
 # 仮想マシンリスト表示の追加
 vm_list = QListWidget()
